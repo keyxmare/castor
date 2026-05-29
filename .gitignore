@@ -1,0 +1,15 @@
+# Réglages propres à chaque machine / dev (ne pas partager)
+settings.local.json
+.claude/settings.local.json
+
+# Secrets
+.env
+.env.*
+*.local
+
+# Caches
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db

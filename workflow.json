@@ -1,0 +1,9 @@
+{
+  "gates": {
+    "afterDesign": true,
+    "afterPlan": true,
+    "afterReview": true,
+    "beforeCommit": true
+  },
+  "audits": ["deadcode", "standards", "security", "perf", "correctness"]
+}
