@@ -10,7 +10,9 @@ Mission : confronter le **diff en cours** (`git diff`, `git diff --staged`) au r
 
 ## Méthode
 
-1. Récupérer le périmètre via `git diff` + `git diff --staged`.
+1. Récupérer le **périmètre complet de la feature** — `git diff` seul rate ce qui est déjà committé sur la branche :
+   - commits de la branche : `git diff $(git merge-base HEAD main)..HEAD` ;
+   - travail non committé : `git diff` + `git diff --staged`.
 2. Lire les fichiers touchés.
 3. Confronter à `CLAUDE.md`, point par point (checklist ci-dessous).
 

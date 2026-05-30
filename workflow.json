@@ -1,9 +1,12 @@
 {
+  "fastPath": true,
+  "branch": { "create": true, "base": "main" },
   "gates": {
     "afterDesign": true,
     "afterPlan": true,
     "afterReview": true,
     "beforeCommit": true
   },
-  "audits": ["deadcode", "standards", "security", "perf", "correctness"]
+  "cleanup": true,
+  "audits": ["standards", "security", "perf", "correctness", "a11y-i18n"]
 }

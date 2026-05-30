@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLAUDE_DIR="${HOME}/.claude"
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}"
 
 mkdir -p "$CLAUDE_DIR" "$CLAUDE_DIR/skills" "$CLAUDE_DIR/agents" "$CLAUDE_DIR/hooks"
 
@@ -15,6 +15,27 @@ link() {
   ln -sfn "$src" "$dest"
   echo "linked: $dest -> $src"
 }
+
+prune() {
+  local dir="$1"
+  [ -d "$dir" ] || return 0
+  for ln_path in "$dir"/*; do
+    [ -L "$ln_path" ] || continue
+    target="$(readlink "$ln_path")"
+    case "$target" in
+      "$REPO_DIR"/*)
+        if [ ! -e "$ln_path" ]; then
+          echo "prune (lien orphelin): $ln_path"
+          rm -f "$ln_path"
+        fi
+        ;;
+    esac
+  done
+}
+
+prune "$CLAUDE_DIR/skills"
+prune "$CLAUDE_DIR/agents"
+prune "$CLAUDE_DIR/hooks"
 
 link "$REPO_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 link "$REPO_DIR/workflow.json" "$CLAUDE_DIR/workflow.json"
@@ -33,6 +54,10 @@ for hook in "$REPO_DIR/hooks"/*.sh; do
 done
 
 if [ "${LINK_SETTINGS:-0}" = "1" ]; then
+  echo
+  echo "/!\\ LINK_SETTINGS=1 : $CLAUDE_DIR/settings.json va etre REMPLACE par celui du depot"
+  echo "    (symlink, pas de merge). Tes reglages perso non-symlink sont sauvegardes en .bak."
+  echo "    Sans ecrasement : copie plutot le contenu dans .claude/settings.json du projet."
   link "$REPO_DIR/settings.json" "$CLAUDE_DIR/settings.json"
 fi
 
