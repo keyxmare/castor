@@ -1,0 +1,21 @@
+services:
+  php:
+    build:
+      cache_from:
+        - type=gha,scope=php
+      cache_to:
+        - type=gha,mode=max,scope=php
+
+  node:
+    build:
+      cache_from:
+        - type=gha,scope=node
+      cache_to:
+        - type=gha,mode=max,scope=node
+
+  playwright:
+    build:
+      cache_from:
+        - type=gha,scope=playwright
+      cache_to:
+        - type=gha,mode=max,scope=playwright

@@ -37,29 +37,27 @@ prune "$CLAUDE_DIR/skills"
 prune "$CLAUDE_DIR/agents"
 prune "$CLAUDE_DIR/hooks"
 
-link "$REPO_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
-link "$REPO_DIR/workflow.json" "$CLAUDE_DIR/workflow.json"
+link "$REPO_DIR/.claude/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+link "$REPO_DIR/.claude/workflow.json" "$CLAUDE_DIR/workflow.json"
 
-for skill in "$REPO_DIR/skills"/*/; do
+for skill in "$REPO_DIR/.claude/skills"/*/; do
   link "${skill%/}" "$CLAUDE_DIR/skills/$(basename "$skill")"
 done
 
-for agent in "$REPO_DIR/agents"/*.md; do
+for agent in "$REPO_DIR/.claude/agents"/*.md; do
   link "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
 done
 
-for hook in "$REPO_DIR/hooks"/*.sh; do
+for hook in "$REPO_DIR/.claude/hooks"/*.sh; do
   chmod +x "$hook"
   link "$hook" "$CLAUDE_DIR/hooks/$(basename "$hook")"
 done
 
-if [ "${LINK_SETTINGS:-0}" = "1" ]; then
-  echo
-  echo "/!\\ LINK_SETTINGS=1 : $CLAUDE_DIR/settings.json va etre REMPLACE par celui du depot"
-  echo "    (symlink, pas de merge). Tes reglages perso non-symlink sont sauvegardes en .bak."
-  echo "    Sans ecrasement : copie plutot le contenu dans .claude/settings.json du projet."
-  link "$REPO_DIR/settings.json" "$CLAUDE_DIR/settings.json"
-fi
+echo
+echo "/!\\ settings.json n'est PAS lie globalement : ses hooks sont desormais projet-relatifs"
+echo "    (\$CLAUDE_PROJECT_DIR/.claude/hooks/...). Un lien global les ferait echouer hors d'un"
+echo "    projet conforme. Le settings.json + hooks vivent dans .claude/ et se chargent tout"
+echo "    seuls a l'ouverture du projet. Pour des hooks globaux, adapte les chemins a la main."
 
 echo
 echo "Standards and workflow installed. Open any project and run /feature."

@@ -1,62 +1,70 @@
-# allo-claude — standards techniques de l'équipe
+# Castor 🦫 — scaffold Symfony + Nuxt (config Claude intégrée)
 
-Ce dépôt héberge le **référentiel de standards techniques** du SI, sous forme d'un
-`CLAUDE.md` versionné. C'est une **configuration « globale » mais partagée et revue en équipe** :
-chaque dev la lie à sa config Claude Code locale, et les règles s'appliquent alors à tous ses projets.
+Monorepo dockerisé servant de **base aux projets de l'équipe** : une API **Symfony**
+(`backend/`) et un frontend **Nuxt** (`frontend/`), entièrement dockerisés. Les services
+portent les **labels Traefik** pour être routés par un reverse proxy présent sur le même
+réseau Docker — **aucun Traefik n'est embarqué**. Toute la toolchain s'exécute exclusivement
+dans Docker.
 
-## Contenu
+Le dépôt **embarque aussi la configuration Claude Code de l'équipe** dans `.claude/`
+(standards, skills, agents, hooks, workflow). Elle se charge **automatiquement** à
+l'ouverture du projet : cloner ce dépôt = workflow d'équipe immédiat, **sans aucune
+installation globale**.
 
-| Fichier | Rôle |
-| --- | --- |
-| `CLAUDE.md` | Les standards techniques (stack, conventions, git, tests, sécurité…). **Le cœur du dépôt.** |
-| `skills/` | Skills du workflow de dev (orchestrateur `feature` + phases + qualité + `triage` Sentry). |
-| `agents/` | Subagents d'audit (conformité, sécurité, perf, correctness, a11y/i18n). |
-| `hooks/` | Scripts de hooks (`commit-gate.sh`, `protect-main.sh`). |
-| `templates/` | Gabarits à copier dans un projet : `Makefile`, CI GitHub Actions, `mcp.json`. |
-| `workflow.json` | Config par défaut : chemin rapide, gates, nettoyage, audits. |
-| `settings.json` | Réglages Claude Code partagés (permissions + hooks). Optionnel à diffuser. |
-| `install.sh` | Crée les symlinks vers `~/.claude/` (sauvegarde l'existant, purge les liens orphelins). |
-| `.gitignore` | Ignore les réglages par machine (`settings.local.json`) et les secrets. |
+## Stack
 
-## Installation (par dev)
+| Domaine | Techno | Version |
+| --- | --- | --- |
+| Backend | PHP / Symfony | 8.5 / 8.0 |
+| Frontend | Nuxt / Vue | 4.4 / 3.5 |
+| Runtime JS | Node.js | 26 |
+| Paquets | Composer / pnpm | 2.x / 11.4 (Corepack) |
+| Base de données | PostgreSQL | 18 |
+| Reverse proxy | compatible Traefik (labels, non embarqué) | — |
+
+Le détail des choix est consigné dans [`docs/adr/0001-stack-et-archi.md`](docs/adr/0001-stack-et-archi.md).
+
+## Prérequis
+
+- **Docker** et **Docker Compose** uniquement. Aucun binaire (php, composer, node, pnpm)
+  n'est requis ni exécuté sur l'hôte.
+
+## Démarrage
 
 ```bash
-./install.sh
+cp .env.dist .env
+make build
+make up
 ```
 
-Cela lie `~/.claude/CLAUDE.md` → ce dépôt (et les skills/agents/hooks/workflow). Les standards sont
-dès lors chargés automatiquement par Claude Code sur **tous vos projets**. L'install **purge** au
-passage les symlinks orphelins (skills/agents renommés ou supprimés). Respecte `CLAUDE_CONFIG_DIR`
-si vous utilisez un répertoire de config alternatif.
+| URL | Description |
+| --- | --- |
+| http://localhost | Frontend Nuxt |
+| http://localhost/api/health | Healthcheck applicatif (vérifie la base) |
+| http://localhost/api/greeting | Endpoint d'exemple (JSON) |
 
-> Pour lier aussi `settings.json`, lancez `LINK_SETTINGS=1 ./install.sh`.
-> ⚠️ Cela **remplace** (symlink, pas de merge) votre `settings.json` global ; l'existant non-symlink
-> est sauvegardé en `.bak`. Sans écrasement, copiez plutôt le contenu dans `.claude/settings.json`
-> de chaque projet.
+> En local, le serveur de dev Nuxt sert le front et **proxifie `/api`** vers le backend
+> (origine unique, pas de CORS). Aucun Traefik n'est lancé : les services conservent leurs
+> **labels Traefik** pour être routés en prod par un Traefik sur le même réseau Docker.
 
-### Alternative : import par projet
+## Configuration Claude Code intégrée (`.claude/`)
 
-Ajoutez dans le `CLAUDE.md` d'un projet une ligne d'import :
+Tout est **versionné avec le projet** et **auto-chargé** dès qu'on lance Claude Code à
+la racine — rien à installer.
 
-```
-@~/Projects/github.com/keyxmare/allo-claude/CLAUDE.md
-```
+| Chemin | Rôle |
+| --- | --- |
+| `.claude/CLAUDE.md` | Référentiel de standards techniques (stack, conventions, git, tests, sécurité…). Mémoire projet auto-chargée. |
+| `.claude/skills/` | Skills du workflow : orchestrateur `feature` + phases (`design`, `plan`, `dev`, `test`, `check`, `commit`, `simplify`) + `triage` Sentry. |
+| `.claude/agents/` | Subagents d'audit read-only : conformité, sécurité, perf, correctness, a11y/i18n. |
+| `.claude/hooks/` | `commit-gate.sh` (lance `make check-fast` avant commit) et `protect-main.sh` (interdit le commit direct sur `main`). |
+| `.claude/settings.json` | Permissions + hooks. Hooks projet-relatifs via `$CLAUDE_PROJECT_DIR`. |
+| `.claude/workflow.json` | Config du workflow : chemin rapide, gates, nettoyage, audits. |
+| `.mcp.json` | Serveurs MCP du projet (GitHub + Sentry), exploités par `triage`. |
 
-## Démarrer un projet conforme
+### Workflow de dev (`/feature`)
 
-Les skills `check` / `test` et le hook `commit-gate` s'appuient sur des cibles `make`. Pour qu'un
-projet soit réellement « gardé », copiez les gabarits de `templates/` et adaptez-les :
-
-- **`templates/Makefile`** → racine du projet. Fournit `check-fast` (format + lint + analyse statique
-  + typecheck, **sans tests**) et `check` (suite complète). Adapter `PHP_SVC` / `NODE_SVC`.
-- **`templates/ci.github-actions.yml`** → `.github/workflows/ci.yml`. La CI exécute exactement les
-  mêmes cibles `make` qu'en local (zéro écart local/CI), dans l'ordre §6.
-- **`templates/mcp.json`** → `.mcp.json` du projet (ou config MCP perso). Branche GitHub + Sentry
-  (observabilité §8), exploités par le skill `triage`.
-
-## Workflow de dev (`/feature`)
-
-Pipeline outillé : **conception → planification → développement → durcissement → review → commit → push**, avec gates configurables et **chemin rapide** pour les changements triviaux.
+Pipeline outillé, avec gates configurables et **chemin rapide** pour les changements triviaux :
 
 ```
 0.   BRANCHE ........ crée une branche de feature si on est sur main      (auto)
@@ -71,55 +79,126 @@ Pipeline outillé : **conception → planification → développement → durcis
 7.   PUSH / PR ...... push ; propose la PR (jamais créée d'office)
 ```
 
-- **Orchestrateur** : `/feature "ma feature"`. Chaque phase est aussi un skill seul (`/design`, `/plan`, `/dev`, `/test`, `/check`, `/commit`, `/simplify`).
-- **L'auto-review (étape 5) ne remplace pas** la revue humaine sur la PR (CLAUDE.md §4).
-- **Ordre du durcissement** : les tests passent **avant** `simplify` (nettoyage sous filet) ; pour un fix, le test de non-régression est écrit **rouge avant** le correctif.
-- **Audits** read-only lancés en parallèle, sur le **périmètre complet de la branche** (`git diff main...HEAD` + working tree). Agents : `standards-auditor`, `security-auditor`, `perf-auditor`, `reviewer` (correctness), `a11y-i18n-auditor`.
-- **`/triage <issue>`** : de l'erreur Sentry au fix testé (reproduction → test rouge → fix via `feature`).
+Chaque phase est aussi invocable seule (`/design`, `/plan`, `/dev`, `/test`, `/check`,
+`/commit`, `/simplify`). L'auto-review (étape 5) **ne remplace pas** la revue humaine sur
+la PR. La config se règle dans `.claude/workflow.json` (`fastPath`, `gates`, `cleanup`,
+`audits`).
 
-### Configuration (`workflow.json`, ou `.claude/workflow.json` par projet)
+### Faire évoluer les standards / le workflow
 
-```json
-{
-  "fastPath": true,
-  "branch": { "create": true, "base": "main" },
-  "gates":  { "afterDesign": true, "afterPlan": true, "afterReview": true, "beforeCommit": true },
-  "cleanup": true,
-  "audits": ["standards", "security", "perf", "correctness", "a11y-i18n"]
-}
+1. Créer une branche. 2. Modifier `.claude/CLAUDE.md` (ou les skills/agents/hooks).
+3. Ouvrir une PR → revue d'équipe → merge. Le changement profite immédiatement à
+quiconque travaille dans le projet.
+
+### Déploiement global (optionnel)
+
+Pour charger les standards et les skills sur **tous** vos projets (et pas seulement
+celui-ci), `./install.sh` lie le contenu de `.claude/` vers `~/.claude/` (respecte
+`CLAUDE_CONFIG_DIR`). Le `settings.json` n'est volontairement **pas** lié globalement :
+ses hooks sont projet-relatifs (`$CLAUDE_PROJECT_DIR`) et ne fonctionnent qu'en contexte
+projet.
+
+## Structure
+
+```
+.claude/    Config Claude Code de l'équipe (standards, skills, agents, hooks, workflow)
+backend/    API Symfony (contrôleurs fins + DTO, Doctrine, PHPStan, php-cs-fixer)
+frontend/   Application Nuxt (Composition API, Pinia, i18n, ESLint/Prettier)
+docker/     Dockerfiles et configuration (php, node, nginx)
+compose.yaml, Makefile  Orchestration et commandes
+.github/workflows/ci.yml  Pipeline CI
+docs/adr/   Décisions d'architecture
 ```
 
-- `fastPath` : autorise le chemin rapide pour les changements triviaux.
-- `gates` : `false` pour ne pas s'arrêter à une étape.
-- `cleanup` : passe `simplify` en durcissement (`false` pour le désactiver).
-- `audits` : agents read-only à lancer (retirer une clé pour désactiver l'audit).
+## Commandes
 
-### Hooks (`PreToolUse` sur `git commit`)
+`make help` liste toutes les cibles. Les principales :
 
-- **`commit-gate`** : lance `make check-fast` (à défaut `make check`) avant le commit ; bloque si rouge. La suite complète (tests) tourne au push / en CI. **Non silencieux** : si le projet n'a pas de cible `make`, il prévient que les gates ne sont pas exécutés (au lieu de laisser croire que c'est gardé).
-- **`protect-main`** : interdit un commit direct sur `main`/`master` (trunk-based §4).
+| Commande | Effet |
+| --- | --- |
+| `make up` / `make down` | Démarre / arrête la stack |
+| `make build` | Construit les images |
+| `make install` | Installe les dépendances backend + frontend |
+| `make migrate` | Applique les migrations Doctrine |
+| `make check-fast` | Gates rapides sans tests (format → lint → stan → typecheck) — appelé par `commit-gate` |
+| `make check` | Pipeline qualité complet (voir ci-dessous) |
+| `make test` | Tests PHPUnit + Vitest |
+| `make coverage` | Couverture back (pcov) + front (v8) |
+| `make e2e` | Tests end-to-end Playwright |
+| `make audit` | Audit des dépendances (composer + pnpm) |
+| `make sh-php` / `make sh-node` | Shell dans un conteneur |
 
-Actifs uniquement si vous liez `settings.json` (`LINK_SETTINGS=1 ./install.sh`).
+> Seules les cibles de **test** (`test-php`, `coverage-php`, `migrate`) démarrent
+> PostgreSQL ; le formatage, le lint et l'analyse statique tournent en `--no-deps`
+> (le `commit-gate` n'attend donc pas la base).
 
-> **Note sécurité.** La `deny`-list de `settings.json` (force-push) est un garde-fou *anti-accident*,
-> pas une frontière de sécurité (un matching de chaîne se contourne). La vraie protection des
-> branches passe par les **branch protection rules** GitHub + la revue de PR.
+## Qualité
 
-> **Skills natifs vs maison.** Claude Code fournit des skills proches (`/code-review`, `/review`,
-> `/simplify`). Les versions de ce dépôt sont **alignées sur `CLAUDE.md`** (ordre des gates Docker,
-> code EN sans commentaire, périmètre branche) et orchestrées par `feature` ; c'est ce qui justifie
-> de les maintenir ici.
+`make check` enchaîne les gates dans l'ordre, en s'arrêtant à la première erreur :
 
-## Faire évoluer les standards
+```
+format (php-cs-fixer + prettier) → lint (eslint) → analyse statique (phpstan niveau 8)
+→ typecheck (vue-tsc) → tests (phpunit + vitest)
+```
 
-1. Créer une branche.
-2. Modifier `CLAUDE.md` (ou les skills/agents).
-3. Ouvrir une PR → revue d'équipe → merge.
+`make check-fast` exécute les mêmes gates **sans les tests** : c'est la cible appelée par
+le hook `commit-gate` avant chaque commit (la suite complète tourne au push / en CI).
+L'analyse statique inclut les extensions PHPStan **Symfony** et **Doctrine**.
 
-Chaque dev récupère ensuite la mise à jour via `git pull` (le symlink pointe vers le fichier du dépôt).
+La CI (`.github/workflows/ci.yml`) exécute exactement les mêmes commandes dans Docker,
+puis les tests end-to-end. Elle **cache** les dépendances (vendor, node_modules, store
+pnpm) et les **layers Docker** (buildx + `compose.ci.yaml`, sans impacter le build local),
+et lance un job **audit** non bloquant (composer + pnpm). Rouge = pas de merge.
 
-## À compléter
+## Tests
 
-Le `CLAUDE.md` contient des marqueurs `⚠️ À COMPLÉTER` pour les décisions propres à l'équipe
-(versions exactes, gestionnaire de paquets JS, seuils de couverture, stratégie de branches…).
-À trancher ensemble avant adoption.
+- **Backend** : PHPUnit (`make test`). Couverture via **pcov** (`make coverage-php`).
+- **Frontend** : Vitest (`make test`, couverture **v8** via `make coverage-front`) et
+  Playwright (`make e2e`, image dédiée `docker/playwright/` — dépendances figées au build,
+  pas d'installation au runtime). Le e2e couvre aussi l'**accessibilité** (axe-core).
+
+## Observabilité
+
+- **Sentry** est câblé côté backend et frontend. Inactif tant que `SENTRY_DSN` est vide ;
+  renseignez-le dans `.env` pour activer la remontée d'erreurs. Le skill `triage` part
+  d'une issue Sentry (via le MCP de `.mcp.json`) jusqu'au fix testé.
+- **Logs JSON structurés** en environnement de production (Monolog vers `stderr`).
+
+## Déploiement
+
+- Construire les images de production et fournir les variables d'environnement
+  (`APP_ENV=prod`, `APP_SECRET`, `DATABASE_URL`, `SENTRY_DSN`) via le gestionnaire de
+  secrets de la cible.
+- Compiler les variables Symfony : `composer dump-env prod`.
+- Appliquer les migrations : `make migrate`.
+
+## Durcissement production
+
+Les Dockerfiles sont **multi-stage** : le stage `dev` (utilisé par `compose.yaml`) embarque
+l'outillage et pcov ; le stage `prod` est durci par construction.
+
+```bash
+docker build --target prod -f docker/php/Dockerfile  -t mon-app-php  .
+docker build --target prod -f docker/node/Dockerfile -t mon-app-node .
+```
+
+- **PHP prod** : code copié dans l'image (plus de bind-mount), `composer install --no-dev`
+  + autoloader optimisé, **utilisateur non-root** (`www-data`), OPcache figé
+  (`validate_timestamps=0` + `preload`, cf. `docker/php/php.prod.ini`), sans pcov.
+- **Node prod** : build SSR Nuxt (`.output`) servi par `node .output/server/index.mjs`,
+  **utilisateur non-root** (`node`).
+
+Réglages restant à fournir par la cible de déploiement :
+
+- **Reverse proxy** : la stack n'embarque pas de Traefik. En prod, place les conteneurs sur
+  le réseau Docker d'un Traefik existant (les labels de routage sont déjà fournis) et sers
+  en HTTPS ; en local, le port `80` est publié directement par le service `node`.
+- **Secrets** : fournir `APP_SECRET`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `SENTRY_DSN`
+  via le gestionnaire de secrets de la cible ; jamais de valeur par défaut en prod.
+- **Dépendances** : `make audit` (composer + pnpm), également joué en CI.
+
+## Points de vigilance
+
+- **Symfony 8.0** : fin de support actif en **juillet 2026** ; une migration de version
+  majeure est à planifier rapidement.
+- **Node 26** : ligne *Current* (passage en LTS en octobre 2026).
