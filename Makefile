@@ -4,6 +4,8 @@ PHP_DB := $(DC) run --rm php
 PHPTEST := $(DC) run --rm -e APP_ENV=test php
 NODE := $(DC) run --rm --no-deps node
 
+GITLEAKS_VERSION := v8.30.1
+
 .DEFAULT_GOAL := help
 
 help: ## Affiche cette aide
@@ -75,6 +77,9 @@ audit: ## Audit des dépendances (composer + pnpm)
 	$(PHP) composer audit
 	$(NODE) pnpm audit
 
+secrets: ## Scan des secrets sur l'historique git (gitleaks, via Docker)
+	docker run --rm -v "$(CURDIR):/repo:ro" zricethezav/gitleaks:$(GITLEAKS_VERSION) git /repo --redact --verbose
+
 check-fast: ## Gates rapides sans tests (format -> lint -> stan -> typecheck) — utilisé par le hook commit-gate
 	$(PHP) vendor/bin/php-cs-fixer fix --dry-run --diff
 	$(NODE) pnpm format:check
@@ -92,4 +97,4 @@ check: ## Pipeline qualité complet (format -> lint -> stan -> typecheck -> test
 	$(PHPTEST) php bin/phpunit
 	$(NODE) pnpm test
 
-.PHONY: help build up down logs install sh-php sh-node migrate format fix stan lint typecheck test-php test-front coverage-php coverage-front coverage e2e test audit check-fast check
+.PHONY: help build up down logs install sh-php sh-node migrate format fix stan lint typecheck test-php test-front coverage-php coverage-front coverage e2e test audit secrets check-fast check
