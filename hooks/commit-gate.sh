@@ -16,11 +16,23 @@ case "$invoked" in
   *) exit 0 ;;
 esac
 
-if [ ! -f Makefile ] || ! grep -qE '^check[[:space:]]*:' Makefile; then
+if [ ! -f Makefile ]; then
+  echo "commit-gate: aucun Makefile — gates qualité NON exécutés, commit autorisé SANS filet. Voir templates/Makefile du dépôt de standards." 1>&2
   exit 0
 fi
 
-if ! make check 1>&2; then
-  echo "commit-gate: 'make check' failed, commit blocked. Fix the gates before committing." 1>&2
+target=""
+if grep -qE '^check-fast[[:space:]]*:' Makefile; then
+  target="check-fast"
+elif grep -qE '^check[[:space:]]*:' Makefile; then
+  target="check"
+else
+  echo "commit-gate: ni cible 'check-fast' ni 'check' dans le Makefile — gates NON exécutés. Ajoute-les (cf. templates/Makefile)." 1>&2
+  exit 0
+fi
+
+echo "commit-gate: make $target ..." 1>&2
+if ! make "$target" 1>&2; then
+  echo "commit-gate: 'make $target' a échoué, commit bloqué. Corrige les gates avant de committer (suite complète via 'make check' / CI au push)." 1>&2
   exit 2
 fi
