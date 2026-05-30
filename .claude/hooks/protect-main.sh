@@ -11,10 +11,13 @@ if [ -z "$invoked" ]; then
   invoked="$payload"
 fi
 
-case "$invoked" in
-  "git commit" | "git commit "* | "git "*" commit" | "git "*" commit "*) ;;
-  *) exit 0 ;;
-esac
+is_git_commit() {
+  printf '%s' "$1" | grep -Eq '(^|[^[:alnum:]_])git[[:space:]]+([^[:space:]]+[[:space:]]+)*commit([[:space:]]|$)'
+}
+
+if ! is_git_commit "$invoked"; then
+  exit 0
+fi
 
 branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 case "$branch" in

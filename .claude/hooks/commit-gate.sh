@@ -11,10 +11,13 @@ if [ -z "$invoked" ]; then
   invoked="$payload"
 fi
 
-case "$invoked" in
-  "git commit" | "git commit "* | "git "*" commit" | "git "*" commit "*) ;;
-  *) exit 0 ;;
-esac
+is_git_commit() {
+  printf '%s' "$1" | grep -Eq '(^|[^[:alnum:]_])git[[:space:]]+([^[:space:]]+[[:space:]]+)*commit([[:space:]]|$)'
+}
+
+if ! is_git_commit "$invoked"; then
+  exit 0
+fi
 
 if [ ! -f Makefile ]; then
   echo "commit-gate: aucun Makefile — gates qualité NON exécutés, commit autorisé SANS filet. Voir le Makefile de référence de ce dépôt Castor." 1>&2
