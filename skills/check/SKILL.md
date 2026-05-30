@@ -1,11 +1,16 @@
 ---
 name: check
-description: Lance les gates qualité — formatter → lint → analyse statique → tests — exclusivement dans la stack Docker du projet. Skill DISPATCHER : détecte la/les techno(s) présentes et charge uniquement la fiche correspondante (php.md, nuxt.md, vue.md) avec les commandes concrètes. S'arrête à la première erreur. Pré-requis obligatoire du `commit`.
+description: Lance les gates qualité — format → lint → analyse statique → typecheck → tests — exclusivement dans la stack Docker du projet. Skill DISPATCHER : détecte la/les techno(s) présentes et charge uniquement la fiche correspondante (php.md, nuxt.md, vue.md) avec les commandes concrètes. S'arrête à la première erreur. Pré-requis obligatoire du `commit`.
 ---
 
 # check — gates qualité (Docker, dispatcher)
 
-Lance **format → lint → analyse statique → tests** sur le code en cours, **exclusivement via Docker**. Skill **dispatcher** : détecte les technos présentes et charge **uniquement** la fiche concernée.
+Lance **format → lint → analyse statique → typecheck → tests** sur le code en cours (ordre CLAUDE.md §6), **exclusivement via Docker**. Skill **dispatcher** : détecte les technos présentes et charge **uniquement** la fiche concernée.
+
+## Portée : `check` vs `check-fast`
+
+- `check` = suite **complète** (jusqu'aux tests). Pré-requis du `commit`, exécuté au push / en CI.
+- `check-fast` = gates **rapides** sans tests (format + lint + analyse statique + typecheck). C'est la cible appelée par le hook `commit-gate` pour ne pas pénaliser chaque commit. Voir `templates/Makefile`.
 
 ## Règle d'or — tout dans Docker
 
@@ -27,11 +32,13 @@ Lire **uniquement** les fiches concernées via `Read` — elles sont **dans ce d
 - Pour chaque cible `make` candidate, **lire la recette** et confirmer qu'elle passe par Docker. Une recette qui appelle `vendor/bin/...` ou `pnpm` en direct → non conforme, signaler.
 - Stack non démarrée (`is not running`, `No such container`) → utiliser `docker compose run --rm`, ne pas se rabattre sur l'hôte.
 
-## 3. Exécuter (ordre commun)
+## 3. Exécuter (ordre CLAUDE.md §6)
 
 1. **Formatter** — peut modifier des fichiers → les signaler.
-2. **Lint / analyse statique**.
-3. **Tests**.
+2. **Lint**.
+3. **Analyse statique** (PHPStan niveau 8).
+4. **Typecheck** (`vue-tsc` / `nuxi typecheck`).
+5. **Tests**.
 
 Commandes exactes : dans la fiche techno. S'arrêter à la première erreur ; ne pas relancer une étape déjà verte si rien n'a bougé.
 

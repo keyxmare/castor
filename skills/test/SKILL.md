@@ -1,6 +1,6 @@
 ---
 name: test
-description: Écrit/complète et lance les tests couvrant la feature ou le fix en cours (unitaires, fonctionnels, e2e selon le périmètre), exclusivement via Docker. PHPUnit côté PHP, Vitest + Playwright côté front. Cible 80% sur le code métier. Ne lance pas le pipeline complet (c'est le rôle de `check`).
+description: Écrit/complète et lance les tests couvrant la feature ou le fix en cours (unitaires, fonctionnels, e2e selon le périmètre), exclusivement via Docker. PHPUnit côté PHP, Vitest + Playwright côté front. Pour un bug, le test de non-régression est écrit AVANT le fix (red-green). Cible 80% sur le code métier. Ne lance pas le pipeline complet (c'est le rôle de `check`).
 ---
 
 # test — écriture & exécution des tests
@@ -11,7 +11,12 @@ Couvre le changement en cours par des tests **pertinents et déterministes**.
 
 - **PHP** : PHPUnit (unitaires + fonctionnels).
 - **Front** : Vitest (unit / composants), Playwright (e2e) si parcours utilisateur.
-- Un bug corrigé ⇒ **test de non-régression** qui échoue avant le fix.
+
+## Red-green pour les fixes
+
+Un bug corrigé ⇒ **test de non-régression**. L'ordre compte : écrire d'abord le test qui **reproduit le bug et échoue** (rouge), puis appliquer/valider le correctif jusqu'au vert. Un test de non-régression qui n'a jamais été vu rouge ne prouve rien.
+
+Dans le pipeline `feature`, cette phase passe **avant** `simplify` : le nettoyage s'appuie sur le filet des tests verts.
 
 ## Règles
 
