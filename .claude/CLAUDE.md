@@ -27,12 +27,12 @@
 | Framework backend | Symfony | https://symfony.com/releases |
 | Frontend | Vue | https://github.com/vuejs/core/releases |
 | Meta-framework | Nuxt | https://github.com/nuxt/nuxt/releases |
-| Runtime JS | Node.js (LTS) | https://nodejs.org/en/about/previous-releases |
+| Runtime JS | Node.js | https://nodejs.org/en/about/previous-releases |
 | Paquets PHP | Composer | https://github.com/composer/composer/releases |
 | Paquets JS | pnpm | https://github.com/pnpm/pnpm/releases |
 | Base de données | PostgreSQL | https://www.postgresql.org/support/versioning/ |
 
-- On retient des versions **stables / LTS** : pas de RC, beta ou nightly en production.
+- On retient la **dernière version stable** publiée (pas nécessairement LTS) : pas de RC, beta ou nightly en production.
 - Une fois choisie au init, la version est **épinglée** (lockfiles versionnés : `composer.lock`, `pnpm-lock.yaml`).
 - **Le gestionnaire de paquets est lui-même versionné et épinglé** (pas seulement les dépendances) : pnpm via le champ `packageManager` de `package.json` + **Corepack** ; côté toolchain (Composer, Node, pnpm), la version est figée par les **tags d'image Docker** du projet (cf. §2).
 - Toute montée de **version majeure** ultérieure = décision d'équipe + plan de migration.
