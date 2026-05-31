@@ -1,0 +1,10 @@
+description = "Transforme un clone frais de Castor en nouveau projet (renommage, home de démo retirée, historique git neuf). Destructif, à lancer une seule fois."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « castor-init » :
+
+@{.claude/skills/castor-init/SKILL.md}
+
+Arguments : {{args}}
+"""

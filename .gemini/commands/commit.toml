@@ -1,0 +1,10 @@
+description = "Crée un commit Conventional Commits des changements en cours. Lancer check d'abord ; jamais de commit si un gate échoue."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « commit » :
+
+@{.claude/skills/commit/SKILL.md}
+
+Arguments : {{args}}
+"""

@@ -1,0 +1,13 @@
+{
+  "context": {
+    "fileName": "AGENTS.md"
+  },
+  "mcpServers": {
+    "github": {
+      "httpUrl": "https://api.githubcopilot.com/mcp/"
+    },
+    "sentry": {
+      "httpUrl": "https://mcp.sentry.dev/mcp"
+    }
+  }
+}

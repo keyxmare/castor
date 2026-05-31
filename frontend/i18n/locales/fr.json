@@ -3,7 +3,7 @@
     "eyebrow": "Scaffold d'équipe · Symfony + Nuxt",
     "title": "Castor",
     "tagline": "Démarrez vos projets au quart de tour.",
-    "lead": "Castor est la base de départ des projets de l'équipe : un monorepo Symfony 8 + Nuxt 4 entièrement dockerisé, avec les gates qualité, les tests, l'observabilité et le workflow Claude déjà câblés. Fini la plomberie à refaire à chaque démarrage — tu clones, et tu attaques ta feature dès la première minute.",
+    "lead": "Castor est la base de départ des projets de l'équipe : un monorepo Symfony 8 + Nuxt 4 entièrement dockerisé, avec les gates qualité, les tests, l'observabilité et le workflow multi-IA déjà câblés. Fini la plomberie à refaire à chaque démarrage — tu clones, et tu attaques ta feature dès la première minute.",
     "logoAlt": "Mascotte Castor",
     "localeSwitcher": "Choix de la langue",
     "featuresTitle": "Déjà dans le moteur",
@@ -21,13 +21,31 @@
         "text": "PostgreSQL 18, Sentry pour l'observabilité des erreurs et l'i18n FR/EN sont branchés dès le départ, pas après coup."
       },
       "workflow": {
-        "title": "Workflow Claude embarqué",
-        "text": "Les standards d'équipe et l'orchestrateur /feature vivent dans .claude/ et voyagent avec le projet : conception → dev → durcissement → review, sans rien installer."
+        "title": "Workflow multi-IA embarqué",
+        "text": "Les standards d'équipe et l'orchestrateur /feature vivent dans .claude/ et sont relayés à Codex (.codex/) et Gemini (.gemini/) via AGENTS.md : conception → dev → durcissement → review, sans rien installer."
       }
     },
     "nextStepTitle": "Prochaine étape",
-    "nextStepLead": "Ce scaffold tourne déjà. Pour en faire ton projet, une seule commande dans Claude Code :",
+    "nextStepLead": "Ce scaffold tourne déjà. Pour en faire ton projet, une seule commande dans ton assistant :",
     "nextStepNote": "Elle renomme le projet partout, remplace cette page de démo et retire la mascotte — tu repars sur une base propre, prête à coder.",
+    "assistants": {
+      "tablistLabel": "Choix de l'assistant",
+      "claude": {
+        "label": "Claude",
+        "command": "/castor-init",
+        "config": "Config lue : .claude/ — skills, agents, hooks, workflow."
+      },
+      "codex": {
+        "label": "Codex",
+        "command": "skill castor-init",
+        "config": "Config lue : AGENTS.md + .codex/ — skills et serveurs MCP."
+      },
+      "gemini": {
+        "label": "Gemini",
+        "command": "/castor-init",
+        "config": "Config lue : AGENTS.md + .gemini/ — commandes et serveurs MCP."
+      }
+    },
     "liveTitle": "Et c'est déjà en ligne",
     "liveLead": "Cette page parle au backend Symfony en direct. La preuve :",
     "greetingLabel": "L'API répond",

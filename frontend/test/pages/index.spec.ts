@@ -16,4 +16,10 @@ describe('index page', () => {
     expect(wrapper.text()).toContain('Hello from Symfony')
     expect(wrapper.html()).toContain('data-status="ok"')
   })
+
+  it('exposes one assistant tab per supported AI', async () => {
+    const wrapper = await mountSuspended(IndexPage)
+
+    expect(wrapper.findAll('[role="tab"]')).toHaveLength(3)
+  })
 })

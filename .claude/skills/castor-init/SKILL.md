@@ -36,6 +36,7 @@ Remplacer le nom `castor` / `Castor` par le nouveau, dans :
 ### 3. Nettoyer la page d'accueil & la mascotte
 
 - Remplacer `frontend/app/pages/index.vue` par une **home minimale** : nom du projet + un seul panneau « santé de l'API » (réutiliser `useHealthStore`), `<style scoped>`, sans mascotte ni contenu marketing de démo.
+- Supprimer le composant de démo `frontend/app/components/AssistantTabs.vue` (onglets multi-IA) qui n'est utilisé que par la home de démo.
 - Supprimer les assets de la mascotte : `frontend/public/castor.png`, `frontend/public/favicon-16.png`, `frontend/public/favicon-32.png`, `frontend/public/apple-touch-icon.png`.
 - Retirer du `README.md` le bloc logo en tête (`<p align="center">…castor.png…</p>`) qui pointe vers la mascotte supprimée, ou le remplacer par le logo du projet.
 - Mettre à jour `nuxt.config.ts` (`app.head.link`) pour ne plus référencer ces favicons, ou pointer vers les nouveaux assets du projet.

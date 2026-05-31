@@ -1,0 +1,10 @@
+description = "Phase de conception : explore l'existant et propose une approche technique argumentée (ADR si notable) avant tout code. S'arrête pour validation."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « design » :
+
+@{.claude/skills/design/SKILL.md}
+
+Arguments : {{args}}
+"""

@@ -1,0 +1,10 @@
+description = "Gates qualité (format → lint → analyse statique → typecheck → tests) dans Docker. S'arrête à la première erreur. Pré-requis du commit."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « check » :
+
+@{.claude/skills/check/SKILL.md}
+
+Arguments : {{args}}
+"""
