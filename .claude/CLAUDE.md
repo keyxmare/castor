@@ -64,7 +64,7 @@
 - Props typées, `emits` déclarés explicitement ; composants en `PascalCase`.
 - État partagé via **Pinia** ; pas de store fourre-tout global.
 - **SSR-safe** : pas d'accès direct à `window`/`document` hors `onMounted` ou `import.meta.client`.
-- Data fetching via `useFetch` / `useAsyncData` avec gestion explicite des états d'erreur et de chargement.
+- Data fetching via `useFetch` / `useAsyncData` / `$fetch` (ofetch natif) avec gestion explicite des états d'erreur et de chargement. **`axios` est proscrit** : on s'en tient au Fetch natif, aucun client HTTP tiers en dépendance directe.
 - **Accessibilité (a11y)** et **i18n** pris en compte dès la conception, pas après coup.
 
 ## 4. Git & workflow
