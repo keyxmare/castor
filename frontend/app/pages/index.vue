@@ -32,6 +32,15 @@ const features = computed(() => [
   },
   { icon: '🤖', title: t('home.features.workflow.title'), text: t('home.features.workflow.text') },
 ])
+
+const assistants = computed(() =>
+  (['claude', 'codex', 'gemini'] as const).map((id) => ({
+    id,
+    label: t(`home.assistants.${id}.label`),
+    command: t(`home.assistants.${id}.command`),
+    config: t(`home.assistants.${id}.config`),
+  })),
+)
 </script>
 
 <template>
@@ -82,10 +91,8 @@ const features = computed(() => [
       <section class="block">
         <h2 class="block__title">{{ t('home.nextStepTitle') }}</h2>
         <p class="block__lead">{{ t('home.nextStepLead') }}</p>
-        <div class="cta">
-          <code class="cta__cmd">/castor-init</code>
-          <p class="cta__note">{{ t('home.nextStepNote') }}</p>
-        </div>
+        <AssistantTabs :items="assistants" :tablist-label="t('home.assistants.tablistLabel')" />
+        <p class="cta__note">{{ t('home.nextStepNote') }}</p>
       </section>
 
       <section class="block" aria-live="polite">
@@ -283,31 +290,11 @@ const features = computed(() => [
   color: #5b6472;
 }
 
-.cta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  align-items: flex-start;
-  padding: 1.5rem;
-  background: #1b1e24;
-  border-radius: 1rem;
-}
-
-.cta__cmd {
-  padding: 0.6rem 1.1rem;
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #e11d2a, #b3151f);
-  border-radius: 0.6rem;
-}
-
 .cta__note {
-  margin: 0;
+  margin: 1rem 0 0;
   font-size: 0.92rem;
   line-height: 1.5;
-  color: #c2c6d0;
+  color: #5b6472;
 }
 
 .live {

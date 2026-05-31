@@ -1,0 +1,10 @@
+description = "Phase de développement : implémente le plan validé étape par étape en respectant CLAUDE.md. Ne committe pas."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « dev » :
+
+@{.claude/skills/dev/SKILL.md}
+
+Arguments : {{args}}
+"""

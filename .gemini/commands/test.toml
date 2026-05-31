@@ -1,0 +1,10 @@
+description = "Écrit et lance les tests du périmètre en cours via Docker (PHPUnit, Vitest, Playwright). Red-green pour un bug."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « test » :
+
+@{.claude/skills/test/SKILL.md}
+
+Arguments : {{args}}
+"""

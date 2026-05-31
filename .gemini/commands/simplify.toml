@@ -1,0 +1,10 @@
+description = "Nettoie le code mort et simplifie le diff en cours sans changer le comportement (qualité, pas chasse aux bugs)."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « simplify » :
+
+@{.claude/skills/simplify/SKILL.md}
+
+Arguments : {{args}}
+"""

@@ -1,0 +1,10 @@
+description = "Orchestrateur du workflow complet : conception → plan → dev → durcissement → review → commit → push, avec gates de validation."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « feature » :
+
+@{.claude/skills/feature/SKILL.md}
+
+Arguments : {{args}}
+"""

@@ -1,0 +1,10 @@
+description = "Phase de planification : découpe l'approche validée en étapes ordonnées (fichiers, done, tests) et crée la liste de tâches. S'arrête pour validation."
+prompt = """
+Agis dans ce dépôt selon les standards d'équipe (AGENTS.md → .claude/CLAUDE.md) et la frontière de portabilité d'AGENTS.md : audits en passe inline, `make check-fast` avant commit, jamais de commit sur `main`.
+
+Applique la procédure du skill « plan » :
+
+@{.claude/skills/plan/SKILL.md}
+
+Arguments : {{args}}
+"""

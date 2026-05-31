@@ -3,6 +3,7 @@
 
 # Claude Code — réglages par machine / dev (ne pas partager)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 settings.local.json
 
 # Env (compose, racine) — le backend/.env Symfony reste versionné (défauts non secrets)

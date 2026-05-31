@@ -3,7 +3,7 @@
     "eyebrow": "Team scaffold · Symfony + Nuxt",
     "title": "Castor",
     "tagline": "Spin up your projects in one kick.",
-    "lead": "Castor is the team's starting point: a fully dockerized Symfony 8 + Nuxt 4 monorepo with quality gates, tests, observability and the Claude workflow already wired. No more plumbing to redo on every kickoff — you clone, and you ship your first feature within the minute.",
+    "lead": "Castor is the team's starting point: a fully dockerized Symfony 8 + Nuxt 4 monorepo with quality gates, tests, observability and the multi-AI workflow already wired. No more plumbing to redo on every kickoff — you clone, and you ship your first feature within the minute.",
     "logoAlt": "Castor mascot",
     "localeSwitcher": "Language",
     "featuresTitle": "Already under the hood",
@@ -21,13 +21,31 @@
         "text": "PostgreSQL 18, Sentry for error observability and FR/EN i18n are wired from the start, not bolted on later."
       },
       "workflow": {
-        "title": "Claude workflow built in",
-        "text": "Team standards and the /feature orchestrator live in .claude/ and travel with the project: design → dev → hardening → review, with nothing to install."
+        "title": "Multi-AI workflow built in",
+        "text": "Team standards and the /feature orchestrator live in .claude/ and are relayed to Codex (.codex/) and Gemini (.gemini/) through AGENTS.md: design → dev → hardening → review, with nothing to install."
       }
     },
     "nextStepTitle": "Next step",
-    "nextStepLead": "This scaffold is already running. To turn it into your project, one command in Claude Code:",
+    "nextStepLead": "This scaffold is already running. To turn it into your project, one command in your assistant:",
     "nextStepNote": "It renames the project everywhere, replaces this demo page and drops the mascot — you start from a clean base, ready to code.",
+    "assistants": {
+      "tablistLabel": "Assistant",
+      "claude": {
+        "label": "Claude",
+        "command": "/castor-init",
+        "config": "Reads: .claude/ — skills, agents, hooks, workflow."
+      },
+      "codex": {
+        "label": "Codex",
+        "command": "skill castor-init",
+        "config": "Reads: AGENTS.md + .codex/ — skills and MCP servers."
+      },
+      "gemini": {
+        "label": "Gemini",
+        "command": "/castor-init",
+        "config": "Reads: AGENTS.md + .gemini/ — commands and MCP servers."
+      }
+    },
     "liveTitle": "And it's already live",
     "liveLead": "This page talks to the Symfony backend in real time. Proof:",
     "greetingLabel": "API says",

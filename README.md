@@ -2,7 +2,7 @@
   <img src="frontend/public/castor.png" alt="Castor" width="180">
 </p>
 
-# Castor 🦫 — scaffold Symfony + Nuxt (config Claude intégrée)
+# Castor 🦫 — scaffold Symfony + Nuxt (config IA intégrée)
 
 Monorepo dockerisé servant de **base aux projets de l'équipe** : une API **Symfony**
 (`backend/`) et un frontend **Nuxt** (`frontend/`), entièrement dockerisés. Les services
@@ -10,10 +10,11 @@ portent les **labels Traefik** pour être routés par un reverse proxy présent 
 réseau Docker — **aucun Traefik n'est embarqué**. Toute la toolchain s'exécute exclusivement
 dans Docker.
 
-Le dépôt **embarque aussi la configuration Claude Code de l'équipe** dans `.claude/`
-(standards, skills, agents, hooks, workflow). Elle se charge **automatiquement** à
-l'ouverture du projet : cloner ce dépôt = workflow d'équipe immédiat, **sans aucune
-installation globale**.
+Le dépôt **embarque aussi la configuration IA de l'équipe** : standards, skills, agents,
+hooks et workflow vivent dans `.claude/`, et sont **relayés à Codex et Gemini** via
+`AGENTS.md`, `.codex/` et `.gemini/`. Tout se charge **automatiquement** à l'ouverture du
+projet, quel que soit l'assistant : cloner ce dépôt = workflow d'équipe immédiat, **sans
+aucune installation globale**.
 
 ## Stack
 
@@ -69,20 +70,44 @@ make up
 > (origine unique, pas de CORS). Aucun Traefik n'est lancé : les services conservent leurs
 > **labels Traefik** pour être routés en prod par un Traefik sur le même réseau Docker.
 
-## Configuration Claude Code intégrée (`.claude/`)
+## Configuration IA intégrée (multi-assistants)
 
-Tout est **versionné avec le projet** et **auto-chargé** dès qu'on lance Claude Code à
-la racine — rien à installer.
+Tout est **versionné avec le projet** et **auto-chargé** dès qu'on ouvre le projet avec son
+assistant — rien à installer.
+
+### Claude Code (`.claude/`)
 
 | Chemin | Rôle |
 | --- | --- |
-| `.claude/CLAUDE.md` | Référentiel de standards techniques (stack, conventions, git, tests, sécurité…). Mémoire projet auto-chargée. |
+| `.claude/CLAUDE.md` | Référentiel de standards techniques (stack, conventions, git, tests, sécurité…). Mémoire projet auto-chargée. **Fait foi.** |
 | `.claude/skills/` | Skills du workflow : orchestrateur `feature` + phases (`design`, `plan`, `dev`, `test`, `check`, `commit`, `simplify`) + `triage` Sentry. |
 | `.claude/agents/` | Subagents d'audit read-only : conformité, sécurité, perf, correctness, a11y/i18n. |
 | `.claude/hooks/` | `commit-gate.sh` (lance `make check-fast` avant commit) et `protect-main.sh` (interdit le commit direct sur `main`). |
 | `.claude/settings.json` | Permissions + hooks. Hooks projet-relatifs via `$CLAUDE_PROJECT_DIR`. |
 | `.claude/workflow.json` | Config du workflow : chemin rapide, gates, nettoyage, audits. |
 | `.mcp.json` | Serveurs MCP du projet (GitHub + Sentry), exploités par `triage`. |
+
+### Codex & Gemini (couverture inter-outils)
+
+Les **mêmes standards** s'appliquent sous Codex (OpenAI) et Gemini (Google), **sans
+duplication** : `AGENTS.md` est le point d'entrée commun et **renvoie à `.claude/CLAUDE.md`
+qui fait foi**. Le workflow y est rejoué en délégant aux skills canoniques `.claude/skills/`.
+
+| Chemin | Rôle |
+| --- | --- |
+| `AGENTS.md` | Point d'entrée inter-outils : garde-fous non négociables + renvoi au référentiel `.claude/CLAUDE.md`. Lu nativement par Codex, chargé par Gemini via `context.fileName`. |
+| `.codex/config.toml` | Serveurs MCP (GitHub + Sentry) pour Codex. |
+| `.codex/skills/` | Workflow porté en skills Codex (délèguent aux skills canoniques `.claude/skills/`). |
+| `.gemini/settings.json` | Point d'entrée (`context.fileName`) + serveurs MCP (GitHub + Sentry) pour Gemini. |
+| `.gemini/commands/` | Workflow porté en commandes Gemini (injectent les skills canoniques `.claude/skills/`). |
+
+> **Frontière de portabilité.** Les **subagents d'audit** et les **hooks** (`commit-gate`,
+> `protect-main`) sont spécifiques à Claude Code et **ne s'exécutent pas** sous Codex/Gemini :
+> l'audit se fait alors en passe inline et `make check-fast` est lancé à la main avant commit.
+> Le **vrai garde-fou inter-outils reste la CI** (rouge = pas de merge).
+>
+> **Codex** ne charge `.codex/` que pour un projet **trusted** : approuve le projet une fois.
+> Décision détaillée : [`docs/adr/0004-couverture-multi-assistants-ia.md`](docs/adr/0004-couverture-multi-assistants-ia.md).
 
 ### Workflow de dev (`/feature`)
 
@@ -102,9 +127,10 @@ Pipeline outillé, avec gates configurables et **chemin rapide** pour les change
 ```
 
 Chaque phase est aussi invocable seule (`/design`, `/plan`, `/dev`, `/test`, `/check`,
-`/commit`, `/simplify`). L'auto-review (étape 5) **ne remplace pas** la revue humaine sur
-la PR. La config se règle dans `.claude/workflow.json` (`fastPath`, `gates`, `cleanup`,
-`audits`).
+`/commit`, `/simplify`) — sous Codex via les skills `.codex/skills/`, sous Gemini via les
+commandes `.gemini/commands/`, qui délèguent toutes aux mêmes skills canoniques. L'auto-review
+(étape 5) **ne remplace pas** la revue humaine sur la PR. La config se règle dans
+`.claude/workflow.json` (`fastPath`, `gates`, `cleanup`, `audits`).
 
 ### Faire évoluer les standards / le workflow
 
@@ -115,7 +141,10 @@ quiconque travaille dans le projet.
 ## Structure
 
 ```
+AGENTS.md   Point d'entrée IA inter-outils (Codex, Gemini) → renvoie à .claude/CLAUDE.md
 .claude/    Config Claude Code de l'équipe (standards, skills, agents, hooks, workflow)
+.codex/     Config Codex (serveurs MCP, skills du workflow)
+.gemini/    Config Gemini (serveurs MCP, commandes du workflow)
 backend/    API Symfony (contrôleurs fins + DTO, Doctrine, PHPStan, php-cs-fixer)
 frontend/   Application Nuxt (Composition API, Pinia, i18n, ESLint/Prettier)
 docker/     Dockerfiles et configuration (php, node, nginx)
