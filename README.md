@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/public/castor.png" alt="Castor" width="180">
+</p>
+
 # Castor 🦫 — scaffold Symfony + Nuxt (config Claude intégrée)
 
 Monorepo dockerisé servant de **base aux projets de l'équipe** : une API **Symfony**
@@ -29,7 +33,25 @@ Le détail des choix est consigné dans [`docs/adr/0001-stack-et-archi.md`](docs
 - **Docker** et **Docker Compose** uniquement. Aucun binaire (php, composer, node, pnpm)
   n'est requis ni exécuté sur l'hôte.
 
-## Démarrage
+## Démarrage express (une commande)
+
+Depuis une machine neuve — vérifie les prérequis, clone, build et démarre la stack, puis
+ouvre l'application :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/keyxmare/castor/main/install.sh | bash -s -- mon-app
+```
+
+`mon-app` est le dossier créé (défaut `castor` si omis). Le script vérifie `git`, puis clone,
+puis vérifie **Docker** (démon démarré) et **make**, copie `.env`, lance `make build && make up`,
+attend le healthcheck et ouvre http://localhost. Le clone repart d'un **dépôt git neuf** (pas
+d'historique du scaffold) ; le renommage en projet se fait ensuite avec `/castor-init`. Réglable
+par variables d'environnement : `CASTOR_REPO`, `CASTOR_REF`, `CASTOR_DIR`, `CASTOR_URL`,
+`CASTOR_HEALTH_TIMEOUT`, `CASTOR_KEEP_GIT` (conserver l'historique), `CASTOR_NO_OPEN`.
+
+## Démarrage manuel
+
+Depuis un clone existant :
 
 ```bash
 cp .env.dist .env
@@ -89,14 +111,6 @@ la PR. La config se règle dans `.claude/workflow.json` (`fastPath`, `gates`, `c
 1. Créer une branche. 2. Modifier `.claude/CLAUDE.md` (ou les skills/agents/hooks).
 3. Ouvrir une PR → revue d'équipe → merge. Le changement profite immédiatement à
 quiconque travaille dans le projet.
-
-### Déploiement global (optionnel)
-
-Pour charger les standards et les skills sur **tous** vos projets (et pas seulement
-celui-ci), `./install.sh` lie le contenu de `.claude/` vers `~/.claude/` (respecte
-`CLAUDE_CONFIG_DIR`). Le `settings.json` n'est volontairement **pas** lié globalement :
-ses hooks sont projet-relatifs (`$CLAUDE_PROJECT_DIR`) et ne fonctionnent qu'en contexte
-projet.
 
 ## Structure
 

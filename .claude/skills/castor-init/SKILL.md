@@ -37,21 +37,27 @@ Remplacer le nom `castor` / `Castor` par le nouveau, dans :
 
 - Remplacer `frontend/app/pages/index.vue` par une **home minimale** : nom du projet + un seul panneau « santé de l'API » (réutiliser `useHealthStore`), `<style scoped>`, sans mascotte ni contenu marketing de démo.
 - Supprimer les assets de la mascotte : `frontend/public/castor.png`, `frontend/public/favicon-16.png`, `frontend/public/favicon-32.png`, `frontend/public/apple-touch-icon.png`.
+- Retirer du `README.md` le bloc logo en tête (`<p align="center">…castor.png…</p>`) qui pointe vers la mascotte supprimée, ou le remplacer par le logo du projet.
 - Mettre à jour `nuxt.config.ts` (`app.head.link`) pour ne plus référencer ces favicons, ou pointer vers les nouveaux assets du projet.
 - Réduire `frontend/i18n/locales/*.json` aux seules clés encore utilisées par la home minimale.
 
-### 4. (Option, confirmée) Historique git neuf
+### 4. Premier commit / historique git
 
-⚠️ **Destructif et irréversible** : efface tout l'historique git du clone. Demander une **confirmation explicite** avant.
+Le bootstrap `install.sh` repart par défaut d'un **dépôt git neuf** (aucun historique, rien de commité). Deux cas :
 
-Si confirmé :
-```
-rm -rf .git
-git init
-git add -A
-git commit -m "chore: init from Castor"
-```
-Sinon, **conserver** l'historique et ne rien faire ici.
+- **Dépôt déjà neuf** (cas par défaut du bootstrap) : une fois le renommage fait, créer le **commit initial** —
+  ```
+  git add -A
+  git commit -m "chore: init from Castor"
+  ```
+- **Historique conservé** (clone manuel ou `CASTOR_KEEP_GIT=1`) : repartir d'un historique neuf est ⚠️ **destructif et irréversible**. Demander une **confirmation explicite** avant —
+  ```
+  rm -rf .git
+  git init
+  git add -A
+  git commit -m "chore: init from Castor"
+  ```
+  Sinon, **conserver** l'historique et ne rien faire ici.
 
 ### 5. Fin
 

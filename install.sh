@@ -1,63 +1,104 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}"
+CASTOR_REPO="${CASTOR_REPO:-https://github.com/keyxmare/castor.git}"
+CASTOR_REF="${CASTOR_REF:-main}"
+CASTOR_URL="${CASTOR_URL:-http://localhost}"
+HEALTH_TIMEOUT="${CASTOR_HEALTH_TIMEOUT:-300}"
 
-mkdir -p "$CLAUDE_DIR" "$CLAUDE_DIR/skills" "$CLAUDE_DIR/agents" "$CLAUDE_DIR/hooks"
+PROJECT_DIR="${1:-${CASTOR_DIR:-castor}}"
 
-link() {
-  local src="$1" dest="$2"
-  if [ -e "$dest" ] && [ ! -L "$dest" ]; then
-    echo "backup: $dest -> $dest.bak"
-    mv "$dest" "$dest.bak"
+die() {
+  echo "✗ $1" >&2
+  exit 1
+}
+
+need() {
+  command -v "$1" >/dev/null 2>&1 || die "$2"
+}
+
+clone_project() {
+  if [ -d "$PROJECT_DIR/.git" ]; then
+    echo "→ Dossier '$PROJECT_DIR' déjà cloné, réutilisation."
+  elif [ -e "$PROJECT_DIR" ]; then
+    die "'$PROJECT_DIR' existe déjà sans être un clone git. Choisis un autre nom : … | bash -s -- <nom>"
+  else
+    echo "→ Clone de $CASTOR_REPO ($CASTOR_REF) dans '$PROJECT_DIR'…"
+    git clone --branch "$CASTOR_REF" "$CASTOR_REPO" "$PROJECT_DIR"
+    if [ -z "${CASTOR_KEEP_GIT:-}" ]; then
+      rm -rf "$PROJECT_DIR/.git"
+      git init -q "$PROJECT_DIR"
+      echo "→ Historique du scaffold retiré, dépôt git neuf (CASTOR_KEEP_GIT=1 pour le conserver)."
+    fi
   fi
-  ln -sfn "$src" "$dest"
-  echo "linked: $dest -> $src"
 }
 
-prune() {
-  local dir="$1"
-  [ -d "$dir" ] || return 0
-  for ln_path in "$dir"/*; do
-    [ -L "$ln_path" ] || continue
-    target="$(readlink "$ln_path")"
-    case "$target" in
-      "$REPO_DIR"/*)
-        if [ ! -e "$ln_path" ]; then
-          echo "prune (lien orphelin): $ln_path"
-          rm -f "$ln_path"
-        fi
-        ;;
-    esac
+assert_docker() {
+  need docker "Docker est requis. Installe Docker Desktop : https://www.docker.com/get-started"
+  docker info >/dev/null 2>&1 || die "Le démon Docker ne tourne pas. Démarre Docker puis relance."
+  docker compose version >/dev/null 2>&1 || die "Le plugin 'docker compose' (Compose v2) est requis."
+}
+
+is_healthy() {
+  curl -fsS "$CASTOR_URL/api/health" 2>/dev/null | grep -q '"database"'
+}
+
+wait_for_health() {
+  need curl "curl est requis pour vérifier la disponibilité de l'application."
+  echo "→ Attente de l'application sur $CASTOR_URL/api/health (jusqu'à ${HEALTH_TIMEOUT}s)…"
+  local elapsed=0
+  until is_healthy; do
+    [ "$elapsed" -lt "$HEALTH_TIMEOUT" ] || die "Application indisponible après ${HEALTH_TIMEOUT}s. Logs : (cd $PROJECT_DIR && make logs)"
+    sleep 3
+    elapsed=$((elapsed + 3))
+    printf '.'
   done
+  echo
 }
 
-prune "$CLAUDE_DIR/skills"
-prune "$CLAUDE_DIR/agents"
-prune "$CLAUDE_DIR/hooks"
+open_app() {
+  [ -z "${CASTOR_NO_OPEN:-}" ] || return 0
+  if command -v open >/dev/null 2>&1; then
+    open "$CASTOR_URL" >/dev/null 2>&1 || true
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$CASTOR_URL" >/dev/null 2>&1 || true
+  fi
+}
 
-link "$REPO_DIR/.claude/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
-link "$REPO_DIR/.claude/workflow.json" "$CLAUDE_DIR/workflow.json"
+print_links() {
+  cat <<EOF
 
-for skill in "$REPO_DIR/.claude/skills"/*/; do
-  link "${skill%/}" "$CLAUDE_DIR/skills/$(basename "$skill")"
-done
+✅ $PROJECT_DIR tourne.
+   → $CASTOR_URL              front Nuxt (/api proxifié)
+   → $CASTOR_URL/api/health   healthcheck applicatif
+   → $CASTOR_URL/api/greeting endpoint d'exemple
 
-for agent in "$REPO_DIR/.claude/agents"/*.md; do
-  link "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
-done
+Pour continuer :  cd $PROJECT_DIR
+Nouveau projet ?  ouvre Claude Code et lance /castor-init $PROJECT_DIR
+EOF
+}
 
-for hook in "$REPO_DIR/.claude/hooks"/*.sh; do
-  chmod +x "$hook"
-  link "$hook" "$CLAUDE_DIR/hooks/$(basename "$hook")"
-done
+assert_project_dir() {
+  case "$PROJECT_DIR" in
+    ""|.|..) die "Nom de projet invalide : '$PROJECT_DIR'." ;;
+    *[!A-Za-z0-9._-]*) die "Nom de projet invalide : '$PROJECT_DIR' (lettres, chiffres, '.', '_', '-')." ;;
+  esac
+}
 
-echo
-echo "/!\\ settings.json n'est PAS lie globalement : ses hooks sont desormais projet-relatifs"
-echo "    (\$CLAUDE_PROJECT_DIR/.claude/hooks/...). Un lien global les ferait echouer hors d'un"
-echo "    projet conforme. Le settings.json + hooks vivent dans .claude/ et se chargent tout"
-echo "    seuls a l'ouverture du projet. Pour des hooks globaux, adapte les chemins a la main."
+main() {
+  assert_project_dir
+  need git "git est requis pour cloner le projet : https://git-scm.com/downloads"
+  clone_project
+  cd "$PROJECT_DIR"
+  assert_docker
+  need make "make est requis (macOS : xcode-select --install ; Debian/Ubuntu : apt-get install make)."
+  [ -f .env ] || cp .env.dist .env
+  echo "→ Build et démarrage de la stack (quelques minutes au 1er lancement)…"
+  make build
+  make up
+  wait_for_health
+  open_app
+  print_links
+}
 
-echo
-echo "Standards and workflow installed. Open any project and run /feature."
+main "$@"
