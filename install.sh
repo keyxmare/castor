@@ -39,16 +39,35 @@ assert_docker() {
   docker compose version >/dev/null 2>&1 || die "Le plugin 'docker compose' (Compose v2) est requis."
 }
 
-is_healthy() {
-  curl -fsS "$CASTOR_URL/api/health" 2>/dev/null | grep -q '"database"'
+HEALTH_CODE=000
+
+probe_health() {
+  local response
+  response=$(curl -sS -m 5 -w '\n%{http_code}' "$CASTOR_URL/api/health" 2>/dev/null) || { HEALTH_CODE=000; return 1; }
+  HEALTH_CODE=${response##*$'\n'}
+  [ "$HEALTH_CODE" = "200" ] && printf '%s' "${response%$'\n'*}" | grep -q '"database"'
+}
+
+report_health_failure() {
+  echo >&2
+  case "$HEALTH_CODE" in
+    000) echo "✗ Application injoignable sur $CASTOR_URL après ${HEALTH_TIMEOUT}s (aucune réponse)." >&2 ;;
+    5*)  echo "✗ L'application répond en HTTP $HEALTH_CODE sur /api/health après ${HEALTH_TIMEOUT}s." >&2
+         echo "  Cause fréquente : dépendances backend manquantes ou échec du boot Symfony." >&2 ;;
+    *)   echo "✗ Healthcheck KO (HTTP $HEALTH_CODE) après ${HEALTH_TIMEOUT}s." >&2 ;;
+  esac
+  echo "  Derniers logs php :" >&2
+  docker compose logs --no-color --tail=30 php >&2 2>/dev/null || true
+  echo "  Plus de logs : (cd $PROJECT_DIR && make logs)" >&2
+  exit 1
 }
 
 wait_for_health() {
   need curl "curl est requis pour vérifier la disponibilité de l'application."
   echo "→ Attente de l'application sur $CASTOR_URL/api/health (jusqu'à ${HEALTH_TIMEOUT}s)…"
   local elapsed=0
-  until is_healthy; do
-    [ "$elapsed" -lt "$HEALTH_TIMEOUT" ] || die "Application indisponible après ${HEALTH_TIMEOUT}s. Logs : (cd $PROJECT_DIR && make logs)"
+  until probe_health; do
+    [ "$elapsed" -lt "$HEALTH_TIMEOUT" ] || report_health_failure
     sleep 3
     elapsed=$((elapsed + 3))
     printf '.'
@@ -93,8 +112,9 @@ main() {
   assert_docker
   need make "make est requis (macOS : xcode-select --install ; Debian/Ubuntu : apt-get install make)."
   [ -f .env ] || cp .env.dist .env
-  echo "→ Build et démarrage de la stack (quelques minutes au 1er lancement)…"
+  echo "→ Build, installation des dépendances et démarrage de la stack (quelques minutes au 1er lancement)…"
   make build
+  make install
   make up
   wait_for_health
   open_app

@@ -44,8 +44,8 @@ curl -fsSL https://raw.githubusercontent.com/keyxmare/castor/main/install.sh | b
 ```
 
 `mon-app` est le dossier créé (défaut `castor` si omis). Le script vérifie `git`, puis clone,
-puis vérifie **Docker** (démon démarré) et **make**, copie `.env`, lance `make build && make up`,
-attend le healthcheck et ouvre http://localhost. Le clone repart d'un **dépôt git neuf** (pas
+puis vérifie **Docker** (démon démarré) et **make**, copie `.env`, lance `make build`, `make install`
+puis `make up`, attend le healthcheck et ouvre http://localhost. Le clone repart d'un **dépôt git neuf** (pas
 d'historique du scaffold) ; le renommage en projet se fait ensuite avec `/castor-init`. Réglable
 par variables d'environnement : `CASTOR_REPO`, `CASTOR_REF`, `CASTOR_DIR`, `CASTOR_URL`,
 `CASTOR_HEALTH_TIMEOUT`, `CASTOR_KEEP_GIT` (conserver l'historique), `CASTOR_NO_OPEN`.
@@ -57,6 +57,7 @@ Depuis un clone existant :
 ```bash
 cp .env.dist .env
 make build
+make install
 make up
 ```
 
