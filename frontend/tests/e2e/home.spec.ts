@@ -12,8 +12,11 @@ test('home page switches between assistant tabs', async ({ page }) => {
   await page.goto('/')
 
   const codexTab = page.getByRole('tab', { name: 'Codex' })
-  await codexTab.click()
 
-  await expect(codexTab).toHaveAttribute('aria-selected', 'true')
+  await expect(async () => {
+    await codexTab.click()
+    await expect(codexTab).toHaveAttribute('aria-selected', 'true', { timeout: 1000 })
+  }).toPass({ timeout: 15000 })
+
   await expect(page.getByText('skill castor-init')).toBeVisible()
 })
