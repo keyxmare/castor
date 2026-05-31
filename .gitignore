@@ -1,15 +1,36 @@
-# Réglages propres à chaque machine / dev (ne pas partager)
-settings.local.json
-.claude/settings.local.json
-
-# Secrets
-.env
-.env.*
-*.local
-
-# Caches
-.cache/
-
 # OS
 .DS_Store
-Thumbs.db
+
+# Claude Code — réglages par machine / dev (ne pas partager)
+.claude/settings.local.json
+settings.local.json
+
+# Env (compose, racine) — le backend/.env Symfony reste versionné (défauts non secrets)
+/.env
+/.env.local
+/.env.*.local
+
+# Backend (Symfony)
+/backend/vendor/
+/backend/var/
+/backend/.env.local
+/backend/.env.*.local
+/backend/public/bundles/
+/backend/.php-cs-fixer.cache
+/backend/.phpunit.cache/
+
+# Frontend (Nuxt)
+/frontend/node_modules/
+/frontend/.pnpm-store/
+/frontend/.nuxt/
+/frontend/.output/
+/frontend/.data/
+/frontend/dist/
+/frontend/coverage/
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/.playwright/
+
+# IDE
+/.idea/
+/.vscode/

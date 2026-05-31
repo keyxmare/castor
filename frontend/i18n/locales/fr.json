@@ -1,0 +1,46 @@
+{
+  "home": {
+    "eyebrow": "Scaffold d'équipe · Symfony + Nuxt",
+    "title": "Castor",
+    "tagline": "Démarrez vos projets au quart de tour.",
+    "lead": "Castor est la base de départ des projets de l'équipe : un monorepo Symfony 8 + Nuxt 4 entièrement dockerisé, avec les gates qualité, les tests, l'observabilité et le workflow Claude déjà câblés. Fini la plomberie à refaire à chaque démarrage — tu clones, et tu attaques ta feature dès la première minute.",
+    "logoAlt": "Mascotte Castor",
+    "localeSwitcher": "Choix de la langue",
+    "featuresTitle": "Déjà dans le moteur",
+    "features": {
+      "docker": {
+        "title": "Tout en Docker",
+        "text": "La toolchain — PHP, Composer, Node, pnpm — tourne à 100 % dans des conteneurs. Aucune installation sur ta machine, le même environnement pour toute l'équipe et en CI."
+      },
+      "quality": {
+        "title": "Qualité non négociable",
+        "text": "Format, lint, analyse statique (PHPStan niveau 8), typecheck et tests s'enchaînent en gate bloquant : php-cs-fixer, ESLint, vue-tsc, PHPUnit, Vitest, Playwright. Rouge = pas de merge."
+      },
+      "observability": {
+        "title": "Prêt pour la prod",
+        "text": "PostgreSQL 18, Sentry pour l'observabilité des erreurs et l'i18n FR/EN sont branchés dès le départ, pas après coup."
+      },
+      "workflow": {
+        "title": "Workflow Claude embarqué",
+        "text": "Les standards d'équipe et l'orchestrateur /feature vivent dans .claude/ et voyagent avec le projet : conception → dev → durcissement → review, sans rien installer."
+      }
+    },
+    "nextStepTitle": "Prochaine étape",
+    "nextStepLead": "Ce scaffold tourne déjà. Pour en faire ton projet, une seule commande dans Claude Code :",
+    "nextStepNote": "Elle renomme le projet partout, remplace cette page de démo et retire la mascotte — tu repars sur une base propre, prête à coder.",
+    "liveTitle": "Et c'est déjà en ligne",
+    "liveLead": "Cette page parle au backend Symfony en direct. La preuve :",
+    "greetingLabel": "L'API répond",
+    "loading": "Chargement…",
+    "error": "Impossible de contacter l'API",
+    "healthLabel": "Santé du stack",
+    "healthOk": "opérationnel",
+    "healthDown": "indisponible",
+    "footer": "Cette page n'est qu'un point de départ : remplace-la par ta vraie home, la mascotte comprendra."
+  },
+  "error": {
+    "title": "Oups, quelque chose a cassé",
+    "lead": "Une erreur inattendue est survenue. Reviens à l'accueil et réessaie.",
+    "back": "Retour à l'accueil"
+  }
+}
